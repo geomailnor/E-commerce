@@ -44,7 +44,6 @@
   "userUpdatedSuccessfully": "User updated successfully",
   "serverError": "Internal server error",
   "testing": "Testing translation works!",
-  
   "categoryNameValidation": "Category name must be at least 3 characters long.",
   "enterValidEmail": "Please enter a valid email.",
   "passwordMinLength": "Password must be at least 6 characters.",
