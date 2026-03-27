@@ -1,7 +1,7 @@
 import express from 'express';
 import { Category } from '../models/category.model.js';
 
-export const router = express.Router();
+const router = express.Router();
 
 router.post('/', async (req, res) => {
   try {
@@ -16,3 +16,39 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ message: err.message });
   }
 });
+router.get('/', async (req, res) => {
+  try {
+    const categoryList = await Category.find();
+    if (!categoryList || categoryList.length === 0) {
+      return res.send({ message: 'noCategories' });
+    }
+    res.send(categoryList);
+  } catch (err) {
+    res.status(400).send({ message: err.message });
+  }
+});
+router.delete('/:id', async (req, res) => {
+  try {
+    const catg = await Category.findByIdAndDelete(req.params.id);
+    if (!catg) {
+      return res.status(404).send({ message: req.t('categoryNotFound') });
+    };
+    res.send({ message: req.t('categoryDeletedSuccessfully') });
+
+  } catch (err) {
+    res.status(400).send({ message: err.message });
+  }
+});
+router.put('/:id', async (req, res) => {
+  try {
+    const catg = await Category.findByIdAndUpdate(req.params.id, { name: req.body.name });
+    if (!catg) {
+      return res.status(404).send({ message: req.t('categoryNotFound') });
+    };
+    res.send({ message: req.t('categoryUpdatedSuccessfully') });
+
+  } catch (err) {
+    res.status(400).send({ message: err.message });
+  }
+});
+export default router;

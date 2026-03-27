@@ -1,29 +1,33 @@
 import express from 'express';
 import 'dotenv/config';
 import mongoose from 'mongoose';
+import authRouter from './routes/auth.routs.js';
 // Езици
-import i18next from 'i18next';
-import backend from 'i18next-fs-backend';
-import middleware from 'i18next-http-middleware';
+// import i18next from 'i18next';
+// import backend from 'i18next-fs-backend';
+// import middleware from 'i18next-http-middleware';
 import cors from 'cors';
-import { router as categoryRouter } from './routes/category.route.js';
+import categoryRouter from './routes/category.route.js';
+import morgan from 'morgan';
 
-i18next
-  .use(backend)
-  .use(middleware.LanguageDetector)
-  .init({
-    fallbackLng: 'en',
-    backend: {
-      loadPath: 'locales/{{lng}}.json'
-    }
-  }); //Езици
+// i18next
+//   .use(backend)
+//   .use(middleware.LanguageDetector)
+//   .init({
+//     fallbackLng: 'en',
+//     backend: {
+//       loadPath: 'locales/{{lng}}.json'
+//     }
+//   }); 
+//Езици
 
 const app = express();
 const port = process.env.PORT || 3000;
 const api = process.env.API;
 
-app.use(middleware.handle(i18next)); //Езици
+// app.use(middleware.handle(i18next)); //Езици
 app.use(express.json());
+app.use(morgan('tiny'));
 app.use(cors({
   origin: ['http://localhost:3000', 'http://mydomain.com'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
@@ -31,9 +35,12 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language']
 }));
 app.use(`${api}/categories`, categoryRouter);
+app.use(`${api}/auth`, authRouter);
+
 
 app.get(`${api}/health`, (req, res) => {
   res.send(req.t('firstNameRequired')); //Езици
+  res.json({ status: 'OK', message: 'Health check passed' }); // ← ПРОМЕНИ
 });
 
 app.listen(port, () => {
