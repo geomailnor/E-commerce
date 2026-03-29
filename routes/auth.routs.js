@@ -1,20 +1,70 @@
 import express from 'express';
 import User from '../models/user.model.js';
+import { registerValidation, handleValidationErrors } from '../validators/auth.validator.js';
+import { generateToken } from '../helpers/jwt.js';
 
 const router = express.Router();
-router.post('/register', async (req, res) => {
+router.post('/register', registerValidation, handleValidationErrors, async (req, res) => {
   try {
     const user = new User(req.body);
+    const { email } = req.body;
+    const existingUserByEmail = await User.findOne({ email });
+    if (existingUserByEmail) {
+      return res.status(400).json({
+        success: false,
+        message: req.t('emailAlreadyExists')
+      });
+    }
+
     await user.save();
+    const token = generateToken(user);
     res.status(201).json({
       success: true,
-      // message: req.t('categoryUpdatedSuccessfully'),
-      message: 'User created successfully', // ← ПРОМЕНИ - махни req.t()
-      data: user.toJSON()
+      message: req.t('categoryUpdatedSuccessfully'),
+      data: user.toJSON(),
+      token: token
     });
 
   } catch (error) {
     console.error('Registration error', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const userData = await User.findOne({ email });
+
+    if (!userData) {
+      return res.status(401).json({
+        sucess: false,
+        message: req.t('userNotFound')
+      });
+    }
+
+    const isPasswordCorrect = await userData.comparePassword(password);
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        success: false,
+        message: req.t('incorrectPassword')
+      });
+    }
+    const token = generateToken(userData);
+    res.json({
+      success: true,
+      message: req.t('loginSuccessful'),
+      data: {
+        user: userData.toJSON(),
+        token: token
+      }
+    });
+  } catch (error) {
+    console.error('Login error', error);
     res.status(500).json({
       success: false,
       message: error.message

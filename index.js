@@ -3,29 +3,28 @@ import 'dotenv/config';
 import mongoose from 'mongoose';
 import authRouter from './routes/auth.routs.js';
 // Езици
-// import i18next from 'i18next';
-// import backend from 'i18next-fs-backend';
-// import middleware from 'i18next-http-middleware';
+import i18next from 'i18next';
+import backend from 'i18next-fs-backend';
+import middleware from 'i18next-http-middleware';
 import cors from 'cors';
 import categoryRouter from './routes/category.route.js';
 import morgan from 'morgan';
 
-// i18next
-//   .use(backend)
-//   .use(middleware.LanguageDetector)
-//   .init({
-//     fallbackLng: 'en',
-//     backend: {
-//       loadPath: 'locales/{{lng}}.json'
-//     }
-//   }); 
-//Езици
+i18next
+  .use(backend)
+  .use(middleware.LanguageDetector)
+  .init({
+    fallbackLng: 'en',
+    backend: {
+      loadPath: 'locales/{{lng}}.json'
+    }
+  }); //Езици
 
 const app = express();
 const port = process.env.PORT || 3000;
 const api = process.env.API;
 
-// app.use(middleware.handle(i18next)); //Езици
+app.use(middleware.handle(i18next)); //Езици
 app.use(express.json());
 app.use(morgan('tiny'));
 app.use(cors({
