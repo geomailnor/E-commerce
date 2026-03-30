@@ -1,11 +1,14 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs'; // Различно е
+import { addCommonVirtuals } from '../helpers/mongoose-plugin.js';
 
-const userSchema = mongoose.Schema({
+const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    trim: true,  // ✅
+    lowercase: true  // ✅
   },
   password: {
     type: String,
@@ -64,9 +67,7 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-userSchema.virtual('id').get(function () {
-  return this._id.toHexString();
-});
+userSchema.plugin(addCommonVirtuals);
 
 userSchema.set('toJSON', {
   virtuals: true,

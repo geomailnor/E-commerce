@@ -1,7 +1,8 @@
 import express from 'express';
 import User from '../models/user.model.js';
-import { registerValidation, handleValidationErrors } from '../validators/auth.validator.js';
+import { registerValidation, handleValidationErrors, loginValidation, updateValidation } from '../validators/auth.validator.js';
 import { generateToken } from '../helpers/jwt.js';
+import { handleRouteError } from '../helpers/error-handling.js';
 
 const router = express.Router();
 router.post('/register', registerValidation, handleValidationErrors, async (req, res) => {
@@ -20,21 +21,17 @@ router.post('/register', registerValidation, handleValidationErrors, async (req,
     const token = generateToken(user);
     res.status(201).json({
       success: true,
-      message: req.t('categoryUpdatedSuccessfully'),
+      message: req.t('userRegisteredSuccessfully'),
       data: user.toJSON(),
       token: token
     });
 
   } catch (error) {
-    console.error('Registration error', error);
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    handleRouteError(error, res);
   }
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', loginValidation, handleValidationErrors, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -42,11 +39,10 @@ router.post('/login', async (req, res) => {
 
     if (!userData) {
       return res.status(401).json({
-        sucess: false,
+        success: false,
         message: req.t('userNotFound')
       });
     }
-
     const isPasswordCorrect = await userData.comparePassword(password);
     if (!isPasswordCorrect) {
       return res.status(401).json({
@@ -64,11 +60,66 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error', error);
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    handleRouteError(error, res);
   }
 });
+router.get('/profile', async (req, res) => {
+  try {
+    const user = await User.findById(req.auth.id).select('-password');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: req.t('userNotFound')
+      });
+    };
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    handleRouteError(error, res);
+  }
+});
+
+router.put('/profile', updateValidation, handleValidationErrors, async (req, res) => {
+  try {
+    const userId = req.auth.id;
+    const updateBody = req.body;
+
+    if (updateBody.email) {
+      const existingUserByEmail = await User.findOne({
+        email: updateBody.email,
+        _id: { $ne: userId }
+      });
+      if (existingUserByEmail) {
+        return res.status(400).json({
+          success: false,
+          message: req.t('userWithEmailAlreadyExists')
+        })
+      }
+    };
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: req.t('userNotFound')
+      });
+    };
+    Object.keys(updateBody).forEach((key) => {
+      user[key] = updateBody[key];
+    });
+    await user.save();
+    res.json({
+      success: true,
+      message: req.t('profileUpdatedSuccessfully'),
+      data: user
+    });
+
+  } catch (error) {
+    handleRouteError(error, res);
+  }
+});
+
 export default router;

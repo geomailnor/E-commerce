@@ -9,6 +9,7 @@ import middleware from 'i18next-http-middleware';
 import cors from 'cors';
 import categoryRouter from './routes/category.route.js';
 import morgan from 'morgan';
+import { authMiddleware } from './middleware/auth.middleware.js';
 
 i18next
   .use(backend)
@@ -33,6 +34,7 @@ app.use(cors({
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language']
 }));
+app.use(authMiddleware);
 app.use(`${api}/categories`, categoryRouter);
 app.use(`${api}/auth`, authRouter);
 
