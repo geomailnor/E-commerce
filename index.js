@@ -8,6 +8,7 @@ import backend from 'i18next-fs-backend';
 import middleware from 'i18next-http-middleware';
 import cors from 'cors';
 import categoryRouter from './routes/category.route.js';
+import productRouter from './routes/product.routes.js';
 import morgan from 'morgan';
 import { authMiddleware } from './middleware/auth.middleware.js';
 
@@ -37,6 +38,7 @@ app.use(cors({
 app.use(authMiddleware);
 app.use(`${api}/categories`, categoryRouter);
 app.use(`${api}/auth`, authRouter);
+app.use(`${api}/products`, productRouter);
 
 
 app.get(`${api}/health`, (req, res) => {

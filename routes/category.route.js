@@ -1,9 +1,10 @@
 import express from 'express';
 import { Category } from '../models/category.model.js';
+import { adminOnly } from '../middleware/roles.middleware.js';
 
 const router = express.Router();
 
-router.post('/', async (req, res) => {
+router.post('/', adminOnly, async (req, res) => {
   try {
     if (!req.body.name || req.body.name.trim().length < 3) {
       return res.status(400).json({ message: req.t('categoryNameValidation') });
@@ -27,7 +28,7 @@ router.get('/', async (req, res) => {
     res.status(400).send({ message: err.message });
   }
 });
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', adminOnly, async (req, res) => {
   try {
     const catg = await Category.findByIdAndDelete(req.params.id);
     if (!catg) {
@@ -39,7 +40,7 @@ router.delete('/:id', async (req, res) => {
     res.status(400).send({ message: err.message });
   }
 });
-router.put('/:id', async (req, res) => {
+router.put('/:id', adminOnly, async (req, res) => {
   try {
     const catg = await Category.findByIdAndUpdate(req.params.id, { name: req.body.name });
     if (!catg) {
